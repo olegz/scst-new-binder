@@ -15,36 +15,24 @@ x * Copyright 2017 the original author or authors.
  */
 package org.springframework.cloud.stream.binder.rabbitmq;
 
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.stream.binding.api.Binder;
+import org.springframework.cloud.stream.binding.api.AbstractBinder;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-class SimpleRabbitBinder<I,O> implements Binder, InitializingBean {
+class SimpleRabbitBinder extends AbstractBinder {
 
-	@Autowired(required=false)
-	private List<Function<I,O>> functions;
+//	@Autowired(required=false)
+//	private Map<String, Function<I,O>> functions;
+//
+//	@Autowired(required=false)
+//	private List<Consumer<I>> consumers;
+//
+//	@Autowired(required=false)
+//	private List<Supplier<O>> suppliers;
+//
+//	public SimpleRabbitBinder(){
+//		System.out.println("########## Hello from Binder ^^^^^^^^ ");
+//	}
 
-	@Autowired(required=false)
-	private List<Consumer<I>> consumers;
 
-	@Autowired(required=false)
-	private List<Supplier<O>> suppliers;
-
-	public SimpleRabbitBinder(){
-		System.out.println("########## Hello from Binder ^^^^^^^^ ");
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		System.out.println("Functions: " + functions);
-		System.out.println("Consumers: " + consumers);
-		System.out.println("Suppliers: " + suppliers);
-	}
 }

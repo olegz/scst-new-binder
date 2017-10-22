@@ -15,6 +15,29 @@
  */
 package org.springframework.cloud.stream.binding.api;
 
-public interface Binder {
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
+public interface Binder<C,P> {
+
+	//Binding<T>
+	<I,O> void bindConsumer(String name, String group, Function<I,O> inboundBindTarget, C consumerProperties);
+
+	default <I> void bindConsumer(String name, String group, Consumer<I> inboundBindTarget, C consumerProperties) {
+		Function<I, Void> f = x -> {
+			inboundBindTarget.accept(x);
+			return null;
+		};
+		bindConsumer(name, group, f, consumerProperties);
+	}
+
+	/**
+	 * Bind the target component as a message producer to the logical entity identified by
+	 * the name.
+	 * @param name the logical identity of the message target
+	 * @param outboundBindTarget the app interface to be bound as a producer
+	 * @param producerProperties the producer properties
+	 */
+	<O> void bindProducer(String name, Supplier<O> outboundBindTarget, P producerProperties);
 }

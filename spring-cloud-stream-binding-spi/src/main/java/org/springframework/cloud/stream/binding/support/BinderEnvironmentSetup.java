@@ -20,7 +20,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  *
  */
-class BinderEnvironmentSetup implements  EnvironmentPostProcessor {
+class BinderEnvironmentSetup implements EnvironmentPostProcessor {
 
 	private final Logger logger = LoggerFactory.getLogger(BinderEnvironmentSetup.class);
 
