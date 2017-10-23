@@ -21,7 +21,6 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -35,19 +34,22 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.cloud.stream.binding.api.Binder;
+import org.springframework.cloud.stream.binding.api.Binding;
+import org.springframework.cloud.stream.binding.api.BindingFactory;
+import org.springframework.context.annotation.Configuration;
 
 /**
  *
  * @author Oleg Zhurakousky
  *
  */
-public class AbstractBinder implements Binder<Properties, Properties>, InitializingBean, BeanFactoryAware {
+@Configuration
+class StreamBinder<P extends ProducerProperties, C extends ConsumerProperties> implements InitializingBean, BeanFactoryAware {
 
-	private final Logger logger = LoggerFactory.getLogger(AbstractBinder.class);
+	private final Logger logger = LoggerFactory.getLogger(StreamBinder.class);
 
 	/*
-	 * Hold type mappings for all functional beans (Supplier,Function,Consumer) gathered by this binder
+	 * Holds type mappings for all functional beans (Supplier,Function,Consumer) gathered by this binder
 	 */
 	private Map<String, Type[]> functionsTypeMappings;
 
@@ -62,36 +64,42 @@ public class AbstractBinder implements Binder<Properties, Properties>, Initializ
 	@Autowired(required=false)
 	private Map<String, Supplier<?>> suppliers;
 
+	@Autowired
+	private BindingFactory<P,C> bindingFactory;
 
-	@Override
-	public <I, O> void bindConsumer(String name, String group,
-			Function<I, O> inboundBindTarget, Properties consumerProperties) {
+	@Autowired
+	private P producerProperties;
 
-	}
-
-	@Override
-	public <O> void bindProducer(String name, Supplier<O> outboundBindTarget,
-			Properties producerProperties) {
-		// TODO Auto-generated method stub
-
-	}
+	@Autowired
+	private C consumerProperties;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		/*
+		 * Binding as SmartLifectcle should be registered with the BF
+		 * Also, ListenerContainer code and all the lifecycle stuff should be done only at the binding level,
+		 * Would be nice if in the end Binding is all that needs to be implemented by the user.
+		 */
 		this.functionsTypeMappings = new HashMap<>();
 		if (this.functions != null) {
 			for (String beanName : this.functions.keySet()) {
 				this.addTypeMappings(beanName);
+				Binding binding = this.bindingFactory.bindConsumer(beanName, beanName + ".1", this.functions.get(beanName), this.consumerProperties);
+				this.beanFactory.registerSingleton(binding.getName(), binding);
 			}
 		}
 		if (this.consumers != null) {
 			for (String beanName : this.consumers.keySet()) {
 				this.addTypeMappings(beanName);
+				Binding binding = this.bindingFactory.bindConsumer(beanName, beanName + ".1", this.consumers.get(beanName), this.consumerProperties);
+				this.beanFactory.registerSingleton(binding.getName(), binding);
 			}
 		}
 		if (this.suppliers != null) {
 			for (String beanName : this.suppliers.keySet()) {
 				this.addTypeMappings(beanName);
+				Binding binding = this.bindingFactory.bindProducer(beanName, this.suppliers.get(beanName), this.producerProperties);
+				this.beanFactory.registerSingleton(binding.getName(), binding);
 			}
 		}
 	}

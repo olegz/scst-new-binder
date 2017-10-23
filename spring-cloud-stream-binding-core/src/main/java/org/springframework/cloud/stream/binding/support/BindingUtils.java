@@ -1,5 +1,5 @@
 /*
-x * Copyright 2017 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,15 @@ x * Copyright 2017 the original author or authors.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.cloud.stream.binder.rabbitmq;
+package org.springframework.cloud.stream.binding.support;
 
-import org.springframework.cloud.stream.binding.support.AbstractBinder;
-import org.springframework.context.annotation.Configuration;
+/**
+ * @author Oleg Zhurakousky
+ *
+ */
+public abstract class BindingUtils {
 
-@Configuration
-class SimpleRabbitBinder extends AbstractBinder {
-
-
+	public static String generateBindingName(String name) {
+		return name + "_binding";
+	}
 }

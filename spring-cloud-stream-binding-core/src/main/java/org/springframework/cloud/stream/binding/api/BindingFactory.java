@@ -19,24 +19,19 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-/**
- *
- * @author Oleg Zhurakousky
- *
- * @param <C>
- * @param <P>
- */
-public interface Binder<C,P> {
+import org.springframework.cloud.stream.binding.support.ConsumerProperties;
+import org.springframework.cloud.stream.binding.support.ProducerProperties;
 
-	//Binding<T>
-	<I,O> void bindConsumer(String name, String group, Function<I,O> inboundBindTarget, C consumerProperties);
+public interface BindingFactory<P extends ProducerProperties, C extends ConsumerProperties> {
 
-	default <I> void bindConsumer(String name, String group, Consumer<I> inboundBindTarget, C consumerProperties) {
+	<I,O> Binding bindConsumer(String name, String group, Function<I,O> inboundBindTarget, C consumerProperties);
+
+	default <I> Binding bindConsumer(String name, String group, Consumer<I> inboundBindTarget, C consumerProperties) {
 		Function<I, Void> f = x -> {
 			inboundBindTarget.accept(x);
 			return null;
 		};
-		bindConsumer(name, group, f, consumerProperties);
+		return this.bindConsumer(name, group, f, consumerProperties);
 	}
 
 	/**
@@ -46,5 +41,5 @@ public interface Binder<C,P> {
 	 * @param outboundBindTarget the app interface to be bound as a producer
 	 * @param producerProperties the producer properties
 	 */
-	<O> void bindProducer(String name, Supplier<O> outboundBindTarget, P producerProperties);
+	<O> Binding bindProducer(String name, Supplier<O> outboundBindTarget, P producerProperties);
 }
