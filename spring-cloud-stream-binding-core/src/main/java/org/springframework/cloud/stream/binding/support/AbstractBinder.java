@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.cloud.stream.binding.api;
+package org.springframework.cloud.stream.binding.support;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -35,7 +35,13 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.cloud.stream.binding.api.Binder;
 
+/**
+ *
+ * @author Oleg Zhurakousky
+ *
+ */
 public class AbstractBinder implements Binder<Properties, Properties>, InitializingBean, BeanFactoryAware {
 
 	private final Logger logger = LoggerFactory.getLogger(AbstractBinder.class);
@@ -100,7 +106,7 @@ public class AbstractBinder implements Binder<Properties, Properties>, Initializ
 		Method method = beanDefinition.getResolvedFactoryMethod();
 		Type[] types = retrieveTypes(method.getGenericReturnType(), Function.class);
 		if (logger.isDebugEnabled()){
-			logger.debug("Added type mappings: {" + beanName + ":" + Arrays.asList(types) + "}");
+			logger.debug("Added type mappings: " + beanName + "(" + Arrays.asList(types).toString().replaceAll("\\[", "").replaceAll("]", "") + ")");
 		}
 		this.functionsTypeMappings.put(beanName, types);
 	}

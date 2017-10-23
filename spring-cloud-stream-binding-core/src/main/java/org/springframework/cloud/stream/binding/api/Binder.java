@@ -19,6 +19,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ *
+ * @author Oleg Zhurakousky
+ *
+ * @param <C>
+ * @param <P>
+ */
 public interface Binder<C,P> {
 
 	//Binding<T>

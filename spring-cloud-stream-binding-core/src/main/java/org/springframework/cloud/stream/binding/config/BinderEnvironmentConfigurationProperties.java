@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.cloud.stream.binding.support;
+package org.springframework.cloud.stream.binding.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("binder")
+/**
+ *
+ * @author Oleg Zhurakousky
+ */
+@ConfigurationProperties(BinderEnvironmentConfigurationProperties.PREFIX)
 public class BinderEnvironmentConfigurationProperties {
+
+	public final static String PREFIX = "binder";
+
+	public final static String BINDER_URL = PREFIX + ".binder-url";
 
 	/**
 	 * Binder URL. Could be maven or file

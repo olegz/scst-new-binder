@@ -15,24 +15,11 @@ x * Copyright 2017 the original author or authors.
  */
 package org.springframework.cloud.stream.binder.rabbitmq;
 
-import org.springframework.cloud.stream.binding.api.AbstractBinder;
+import org.springframework.cloud.stream.binding.support.AbstractBinder;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 class SimpleRabbitBinder extends AbstractBinder {
-
-//	@Autowired(required=false)
-//	private Map<String, Function<I,O>> functions;
-//
-//	@Autowired(required=false)
-//	private List<Consumer<I>> consumers;
-//
-//	@Autowired(required=false)
-//	private List<Supplier<O>> suppliers;
-//
-//	public SimpleRabbitBinder(){
-//		System.out.println("########## Hello from Binder ^^^^^^^^ ");
-//	}
 
 
 }
