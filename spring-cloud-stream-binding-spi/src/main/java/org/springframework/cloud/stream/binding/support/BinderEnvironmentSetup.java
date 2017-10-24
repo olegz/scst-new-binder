@@ -3,7 +3,6 @@ package org.springframework.cloud.stream.binding.support;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -51,18 +50,13 @@ class BinderEnvironmentSetup implements EnvironmentPostProcessor {
 			Assert.isTrue(binderUrlFile.exists(), "Failed to resolve binder URL: " + binderUrlFile);
 			JarFileArchive bootArchive = new JarFileArchive(binderUrlFile);
 			List<Archive> bootArchives = new ArrayList<>(bootArchive.getNestedArchives(x -> isNestedArchive(x)));
-			//List<URL> providedDependencyUrls = bootArchives.stream().map(arch -> doGetURL(arch)).collect(Collectors.toList());
 			List<URL> providedDependencyUrls = new ArrayList<>();
 			providedDependencyUrls.add(new URL(binderUrl));
 			for (Archive arch : bootArchives) {
 				providedDependencyUrls.add(arch.getUrl());
 			}
 
-			Field field = ReflectionUtils.findField(SpringFactoriesLoader.class, "cache");
-			field.setAccessible(true);
-			Map<?, ?> cache = (Map<?, ?>) field.get(null);
-			cache.clear();
-			//SpringFactoriesLoader.
+			this.clearSpringFactoriesLoadersCache();
 
 			URLClassLoader appClassLoader = (URLClassLoader)application.getClassLoader();
 
@@ -76,13 +70,11 @@ class BinderEnvironmentSetup implements EnvironmentPostProcessor {
 		}
 	}
 
-	private URL doGetURL(Archive arch) {
-		try {
-			return arch.getUrl();
-		}
-		catch (MalformedURLException e) {
-			throw new IllegalStateException(e);
-		}
+	private void clearSpringFactoriesLoadersCache() throws Exception {
+		Field field = ReflectionUtils.findField(SpringFactoriesLoader.class, "cache");
+		field.setAccessible(true);
+		Map<?, ?> cache = (Map<?, ?>) field.get(null);
+		cache.clear();
 	}
 
 	private void filterOutExistingDependencies(URLClassLoader appLoader, List<URL> providedDependenciesUrls) {
