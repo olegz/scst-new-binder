@@ -2,6 +2,7 @@ package org.springframework.cloud.stream.binding.support;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -11,7 +12,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
@@ -43,26 +44,26 @@ class BinderEnvironmentSetup implements EnvironmentPostProcessor {
 			Assert.isTrue(binderUrlFile.exists(), "Failed to resolve binder URL: " + binderUrlFile);
 			JarFileArchive bootArchive = new JarFileArchive(binderUrlFile);
 			List<Archive> bootArchives = new ArrayList<>(bootArchive.getNestedArchives(x -> isNestedArchive(x)));
+			List<URL> providedDependencyUrls = bootArchives.stream().map(arch -> doGetURL(arch)).collect(Collectors.toList());
 
-			List<URL> urls = new ArrayList<>();
-			urls.add(new URL(binderUrl));
-			for (Archive ba : bootArchives) {
-				urls.add(ba.getUrl());
-			}
+			URLClassLoader appClassLoader = (URLClassLoader)application.getClassLoader();
 
-			URLClassLoader appLoader = (URLClassLoader)application.getClassLoader();
-			this.filterOutExistingDependencies(appLoader, urls);
+			this.filterOutExistingDependencies(appClassLoader, providedDependencyUrls);
+			providedDependencyUrls.stream().forEach(url -> ReflectionUtils.invokeMethod(addUrl, appClassLoader, url));
 
-
-			urls.stream().forEach(url -> ReflectionUtils.invokeMethod(addUrl, appLoader, url));
-
-			Stream.of(appLoader.getURLs()).forEach(System.out::println);
-
-//			LaunchedURLClassLoader lcl = new LaunchedURLClassLoader(urls.toArray(new URL[]{}), application.getClassLoader());
-//			Thread.currentThread().setContextClassLoader(lcl);
+			//Stream.of(appClassLoader.getURLs()).forEach(System.out::println);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("Failed to add '" + binderUrl + "' to classpath.", e);
+		}
+	}
+
+	private URL doGetURL(Archive arch) {
+		try {
+			return arch.getUrl();
+		}
+		catch (MalformedURLException e) {
+			throw new IllegalStateException(e);
 		}
 	}
 
