@@ -21,6 +21,7 @@ import org.springframework.boot.loader.archive.JarFileArchive;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 /**
  *
  * @author Oleg Zhurakousky
@@ -39,6 +40,9 @@ class BinderEnvironmentSetup implements EnvironmentPostProcessor {
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
 		String binderUrl = environment.getProperty("binder.binder-url");
+		if (!StringUtils.hasText(binderUrl)){
+			return;
+		}
 		try {
 			File binderUrlFile = new File(new URI(binderUrl).getPath());
 			Assert.isTrue(binderUrlFile.exists(), "Failed to resolve binder URL: " + binderUrlFile);

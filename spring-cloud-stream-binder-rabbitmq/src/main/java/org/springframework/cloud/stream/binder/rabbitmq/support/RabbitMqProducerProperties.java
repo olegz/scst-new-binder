@@ -15,10 +15,17 @@
  */
 package org.springframework.cloud.stream.binder.rabbitmq.support;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.stream.binding.support.ProducerProperties;
 
 @ConfigurationProperties
-public class RabbitMqProducerProperties extends ProducerProperties{
+public class RabbitMqProducerProperties extends ProducerProperties {
 
+	@Autowired
+	private RabbitMqCommonProperties commonProperties;
+
+	public RabbitMqCommonProperties getCommonProperties() {
+		return commonProperties;
+	}
 }

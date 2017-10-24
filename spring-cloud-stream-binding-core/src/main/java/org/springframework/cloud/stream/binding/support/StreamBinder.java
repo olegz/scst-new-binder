@@ -84,14 +84,15 @@ class StreamBinder<P extends ProducerProperties, C extends ConsumerProperties> i
 		if (this.functions != null) {
 			for (String beanName : this.functions.keySet()) {
 				this.addTypeMappings(beanName);
-				Binding binding = this.bindingFactory.bindConsumer(beanName, beanName + ".1", this.functions.get(beanName), this.consumerProperties);
+				//TODO doesn't group comes from properties? If so why are we passing it here?
+				Binding binding = this.bindingFactory.bindConsumer(beanName, "", this.functions.get(beanName), this.consumerProperties);
 				this.beanFactory.registerSingleton(binding.getName(), binding);
 			}
 		}
 		if (this.consumers != null) {
 			for (String beanName : this.consumers.keySet()) {
 				this.addTypeMappings(beanName);
-				Binding binding = this.bindingFactory.bindConsumer(beanName, beanName + ".1", this.consumers.get(beanName), this.consumerProperties);
+				Binding binding = this.bindingFactory.bindConsumer(beanName, "", this.consumers.get(beanName), this.consumerProperties);
 				this.beanFactory.registerSingleton(binding.getName(), binding);
 			}
 		}

@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.stream.binder.rabbitmq.support.RabbitMqCommonProperties;
 import org.springframework.cloud.stream.binder.rabbitmq.support.RabbitMqConsumerBinding;
 import org.springframework.cloud.stream.binder.rabbitmq.support.RabbitMqConsumerProperties;
 import org.springframework.cloud.stream.binder.rabbitmq.support.RabbitMqProducerBinding;
@@ -33,16 +34,20 @@ import org.springframework.stereotype.Component;
  * @author Oleg Zhurakousky
  *
  */
-@Component
-@EnableConfigurationProperties({RabbitMqProducerProperties.class, RabbitMqConsumerProperties.class})
+//@Component
+
 public class RabbitMqBindingFactory implements BindingFactory<RabbitMqProducerProperties, RabbitMqConsumerProperties> {
 
 	@Autowired
 	private ConnectionFactory connectionFactory;
 
+	@Autowired
+	private RabbitMqExchangeQueueProvisioner provisioner;
+
 	@Override
-	public <I, O> Binding bindConsumer(String name, String group, Function<I, O> inboundBindTarget, RabbitMqConsumerProperties consumerProperties) {
-		RabbitMqConsumerBinding binding = new RabbitMqConsumerBinding(name, group, inboundBindTarget, consumerProperties);
+	public <I, O> Binding bindConsumer(String consumerTargetBeanName, String group, Function<I, O> consumerTarget, RabbitMqConsumerProperties consumerProperties) {
+		RabbitMqConsumerBinding<I,O> binding = new RabbitMqConsumerBinding<>(consumerTargetBeanName, group, consumerTarget,
+				connectionFactory, provisioner, consumerProperties);
 		return binding;
 	}
 

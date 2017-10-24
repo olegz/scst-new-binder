@@ -15,8 +15,6 @@
  */
 package org.springframework.cloud.stream.binding.support;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 //@ConfigurationProperties
 public class ProducerProperties {
 
