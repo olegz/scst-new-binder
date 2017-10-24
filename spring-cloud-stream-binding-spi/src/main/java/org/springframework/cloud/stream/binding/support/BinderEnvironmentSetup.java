@@ -50,26 +50,24 @@ class BinderEnvironmentSetup implements EnvironmentPostProcessor {
 			Assert.isTrue(binderUrlFile.exists(), "Failed to resolve binder URL: " + binderUrlFile);
 			JarFileArchive bootArchive = new JarFileArchive(binderUrlFile);
 			List<Archive> bootArchives = new ArrayList<>(bootArchive.getNestedArchives(x -> isNestedArchive(x)));
-			List<URL> providedDependencyUrls = new ArrayList<>();
-			providedDependencyUrls.add(new URL(binderUrl));
+			List<URL> providedDependenciesUrls = new ArrayList<>();
+			providedDependenciesUrls.add(new URL(binderUrl));
 			for (Archive arch : bootArchives) {
-				providedDependencyUrls.add(arch.getUrl());
+				providedDependenciesUrls.add(arch.getUrl());
 			}
 
 			this.clearSpringFactoriesLoadersCache();
 
-			URLClassLoader appClassLoader = (URLClassLoader)application.getClassLoader();
+			this.updateAppClassLoader((URLClassLoader) application.getClassLoader(), providedDependenciesUrls);
 
-			this.filterOutExistingDependencies(appClassLoader, providedDependencyUrls);
-			providedDependencyUrls.stream().forEach(url -> ReflectionUtils.invokeMethod(addUrl, appClassLoader, url));
-
-			Stream.of(appClassLoader.getURLs()).forEach(System.out::println);
+			Stream.of(((URLClassLoader) application.getClassLoader()).getURLs()).forEach(System.out::println);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("Failed to add '" + binderUrl + "' to classpath.", e);
 		}
 	}
 
+	//TODO talk to Boot team if there is a way to do it cleanly
 	private void clearSpringFactoriesLoadersCache() throws Exception {
 		Field field = ReflectionUtils.findField(SpringFactoriesLoader.class, "cache");
 		field.setAccessible(true);
@@ -77,8 +75,11 @@ class BinderEnvironmentSetup implements EnvironmentPostProcessor {
 		cache.clear();
 	}
 
-	private void filterOutExistingDependencies(URLClassLoader appLoader, List<URL> providedDependenciesUrls) {
-		Iterator<URL> appClassLoaderUrlIter = Arrays.asList(appLoader.getURLs()).iterator();
+	private void updateAppClassLoader(URLClassLoader appClassLoader, List<URL> providedDependenciesUrls) {
+
+		providedDependenciesUrls.stream().forEach(url -> ReflectionUtils.invokeMethod(addUrl, appClassLoader, url));
+
+		Iterator<URL> appClassLoaderUrlIter = Arrays.asList(appClassLoader.getURLs()).iterator();
 		while (appClassLoaderUrlIter.hasNext()) {
 			String appClassLoaderUrl = appClassLoaderUrlIter.next().toString();
 			for (String bootJarDependencyName : this.bootJarDependencyNames) {
