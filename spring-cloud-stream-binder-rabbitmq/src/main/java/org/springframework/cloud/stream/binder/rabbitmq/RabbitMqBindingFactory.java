@@ -18,6 +18,8 @@ package org.springframework.cloud.stream.binder.rabbitmq;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.stream.binder.rabbitmq.support.RabbitMqConsumerBinding;
 import org.springframework.cloud.stream.binder.rabbitmq.support.RabbitMqConsumerProperties;
@@ -34,6 +36,9 @@ import org.springframework.stereotype.Component;
 @Component
 @EnableConfigurationProperties({RabbitMqProducerProperties.class, RabbitMqConsumerProperties.class})
 public class RabbitMqBindingFactory implements BindingFactory<RabbitMqProducerProperties, RabbitMqConsumerProperties> {
+
+	@Autowired
+	private ConnectionFactory connectionFactory;
 
 	@Override
 	public <I, O> Binding bindConsumer(String name, String group, Function<I, O> inboundBindTarget, RabbitMqConsumerProperties consumerProperties) {
