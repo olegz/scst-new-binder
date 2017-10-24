@@ -1,6 +1,7 @@
 package org.springframework.cloud.stream.binding.support;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -11,14 +12,16 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.loader.archive.Archive;
 import org.springframework.boot.loader.archive.JarFileArchive;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -48,14 +51,25 @@ class BinderEnvironmentSetup implements EnvironmentPostProcessor {
 			Assert.isTrue(binderUrlFile.exists(), "Failed to resolve binder URL: " + binderUrlFile);
 			JarFileArchive bootArchive = new JarFileArchive(binderUrlFile);
 			List<Archive> bootArchives = new ArrayList<>(bootArchive.getNestedArchives(x -> isNestedArchive(x)));
-			List<URL> providedDependencyUrls = bootArchives.stream().map(arch -> doGetURL(arch)).collect(Collectors.toList());
+			//List<URL> providedDependencyUrls = bootArchives.stream().map(arch -> doGetURL(arch)).collect(Collectors.toList());
+			List<URL> providedDependencyUrls = new ArrayList<>();
+			providedDependencyUrls.add(new URL(binderUrl));
+			for (Archive arch : bootArchives) {
+				providedDependencyUrls.add(arch.getUrl());
+			}
+
+			Field field = ReflectionUtils.findField(SpringFactoriesLoader.class, "cache");
+			field.setAccessible(true);
+			Map<?, ?> cache = (Map<?, ?>) field.get(null);
+			cache.clear();
+			//SpringFactoriesLoader.
 
 			URLClassLoader appClassLoader = (URLClassLoader)application.getClassLoader();
 
 			this.filterOutExistingDependencies(appClassLoader, providedDependencyUrls);
 			providedDependencyUrls.stream().forEach(url -> ReflectionUtils.invokeMethod(addUrl, appClassLoader, url));
 
-			//Stream.of(appClassLoader.getURLs()).forEach(System.out::println);
+			Stream.of(appClassLoader.getURLs()).forEach(System.out::println);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("Failed to add '" + binderUrl + "' to classpath.", e);
@@ -90,6 +104,7 @@ class BinderEnvironmentSetup implements EnvironmentPostProcessor {
 	}
 
 	private boolean isNestedArchive(Archive.Entry entry) {
+		System.out.println(entry.getName());
 		if (entry.getName().endsWith(".jar")){
 			this.bootJarDependencyNames.add(entry.getName().replaceAll("BOOT-INF/lib/", ""));
 		}
