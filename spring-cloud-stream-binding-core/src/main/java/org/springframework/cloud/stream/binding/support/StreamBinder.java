@@ -112,7 +112,9 @@ class StreamBinder<P extends ProducerProperties, C extends ConsumerProperties> i
 	private void addTypeMappings(String beanName){
 		RootBeanDefinition beanDefinition = (RootBeanDefinition) beanFactory.getMergedBeanDefinition(beanName);
 		Method method = beanDefinition.getResolvedFactoryMethod();
-		Type[] types = retrieveTypes(method.getGenericReturnType(), Function.class);
+		Class<?> functionalInterface = method.getReturnType().isAssignableFrom(Function.class)
+				? Function.class : (method.getReturnType().isAssignableFrom(Consumer.class) ? Consumer.class : Supplier.class);
+		Type[] types = retrieveTypes(method.getGenericReturnType(), functionalInterface);
 		if (logger.isDebugEnabled()){
 			logger.debug("Added type mappings: " + beanName + "(" + Arrays.asList(types).toString().replaceAll("\\[", "").replaceAll("]", "") + ")");
 		}
